@@ -3,6 +3,9 @@ from osmtogeojson import osmtogeojson
 import requests
 import os
 import time
+from geo_project.geo_config.logger import get_logger
+
+logger = get_logger(__name__)
 
 headers = {
     'User-Agent': 'PythonOSMClient/1.0'
@@ -26,7 +29,7 @@ class GoogleMapsClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print("Błąd pobierania danych:", e)
+            logger.error("Błąd pobierania danych:", e)
             return None    
     
     def get_poi (self, lat: float, lon: float, rad: int, max_res: int, inc_types: list[str]) -> Dict[str, Any]:
@@ -67,7 +70,7 @@ class GoogleMapsClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print("Błąd pobierania danych:", e)
+            logger.error("Błąd pobierania danych:", e)
             return None    
 
     def fake_get_directions(self, origin: str, destination: str, mode: str) -> Dict[str, Any]:
@@ -110,7 +113,7 @@ class WeatherMapClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print("Błąd pobierania danych:", e)
+            logger.error("Błąd pobierania danych:", e)
             return None
     
 
@@ -131,7 +134,7 @@ class WeatherMapClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print("Błąd pobierania danych:", e)
+            logger.error("Błąd pobierania danych:", e)
             return None
     
 
@@ -175,7 +178,7 @@ class OSMOverpass:
             geo_response = osmtogeojson.process_osm_json(response.json())
             return geo_response
         except requests.RequestException as e:
-            print("Błąd pobierania danych:", e)
+            logger.error("Błąd pobierania danych:", e)
             return None
 
     def get_viewpoints(self, south: float, west: float, north: float, east: float, tags: Dict[str, str]) -> Dict[str, Any]:
@@ -200,5 +203,5 @@ class OSMOverpass:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            print("Błąd pobierania danych:", e)
+            logger.error("Błąd pobierania danych:", e)
             return None
