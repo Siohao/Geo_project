@@ -1,11 +1,12 @@
 from psycopg2 import pool
+import os
 from typing import Any
 
 # Minimalny i maksymalny rozmiar puli połączeń
 db_pool = pool.SimpleConnectionPool(
     1, 10, 
     host="127.0.0.1",
-    port=5433,
+    port=os.getenv("POSTGRES_PORT",5432),
     database="geo_project_db",
     user="admin",
     password="admin"

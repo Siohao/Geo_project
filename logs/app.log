@@ -43,3 +43,5 @@
 2026-03-11 17:22:05,385 [INFO] httpx: HTTP Request: GET http://testserver/OSM/premade_routes?lat=35&lon=125&id=1 "HTTP/1.1 200 OK"
 2026-03-11 17:22:05,393 [INFO] httpx: HTTP Request: GET http://testserver/OWM/weather_day_of_trip?lat=35&lon=125 "HTTP/1.1 200 OK"
 2026-03-11 17:22:05,401 [INFO] httpx: HTTP Request: GET http://testserver/OWM/day_weather_forecast?lat=35&lon=125 "HTTP/1.1 200 OK"
+2026-03-11 17:54:34,163 [INFO] googleapiclient.discovery_cache: file_cache is only supported with oauth2client<4.0.0
+2026-03-11 17:54:35,261 [INFO] geo_project.calendar.geo_calendar: Event created: https://www.google.com/calendar/event?eid=Y2hhb3JzOHUyNmEzNjlvc2Jxb2p0cTBlbTAgc3R1cy5hZHJpYW5AbQ
