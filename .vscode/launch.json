@@ -10,14 +10,6 @@
             "request": "launch",
             "cwd": "${workspaceFolder}"
         },
-        // {
-        //     "name": "Run geo_project (Python module)",
-        //     "type": "python",
-        //     "request": "launch",
-        //     "module": "geo_project.main",
-        //     "cwd": "${workspaceFolder}",
-        //     "justMyCode": true
-        // }
         {
             "name": "Python: FastAPI",
             "type": "python",
