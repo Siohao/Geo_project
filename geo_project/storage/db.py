@@ -5,7 +5,8 @@ from typing import Any
 # Minimalny i maksymalny rozmiar puli połączeń
 db_pool = pool.SimpleConnectionPool(
     1, 10, 
-    host=os.getenv("POSTGRES_HOST", "postgres-db"),
+    # host=os.getenv("POSTGRES_HOST", "postgres-db"),
+    host=os.getenv("POSTGRES_HOST", "localhost"),
     port=os.getenv("POSTGRES_PORT",5432),
     database="geo_project_db",
     user="admin",
