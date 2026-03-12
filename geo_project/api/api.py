@@ -140,7 +140,8 @@ class WeatherMapClient:
 
 class OSMOverpass:
 
-    overpass_url = "http://localhost:12346/api/interpreter"
+    # overpass_url = "http://localhost:12346/api/interpreter"
+    overpass_url = "http://overpass_sk/api/interpreter"
 
     def __init__(self):
         pass

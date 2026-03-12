@@ -11,7 +11,6 @@ router = APIRouter(prefix="/OWM", tags=["owm"])
 @router.get("/weather_day_of_trip")
 def get_weather_for_trail_day(lat: float,
                               lon: float,
-                            #   trip_date: date,
                               owm_service: WeatherServices = Depends(get_weather_service)) -> Dict[str, Any]:
     
     check_inserted_location(lat, lon)

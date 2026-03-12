@@ -6,7 +6,7 @@ class MapResponse(BaseModel):
     duration: str
 
     @classmethod
-    def parse_map(cls, response: Dict) -> MapResponse:
+    def parse_map(cls, response: Dict) -> "MapResponse":
         return cls(
             distance = response["routes"][0]["legs"][0]["distance"]["text"],
             duration = response["routes"][0]["legs"][0]["duration"]["text"]
@@ -24,7 +24,7 @@ class MapResponsePOI(BaseModel):
     places: list[POI]
 
     @classmethod
-    def parse_poi(cls, response: Dict[str, Any]) -> MapResponsePOI:
+    def parse_poi(cls, response: Dict[str, Any]) -> "MapResponsePOI":
 
         parsed_places: list[POI] = []
 
