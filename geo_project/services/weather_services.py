@@ -48,13 +48,6 @@ class WeatherServices:
         forecast_response_actual_time: datetime = datetime.now(timezone.utc)
         forecast_response_local_time: datetime = datetime.now(timezone.utc) + timedelta(seconds=timezone_forecast)
 
-        with open("test_test.json", "w", encoding="utf-8") as f:
-        #     ######## .model_dump() -> zmiana z obiektu klasy na dict
-            json.dump(forecast_summary, f, ensure_ascii=False, indent=2)
-        #     # json.dump(data.model_dump(), f, ensure_ascii=False, indent=2)
-            print("Zapisano")
-        print("koniec")
-
         response: list[ForecastResponse] = []
         items: list[ForecastItems] = []
         hours: list[int] = [6,12,18]

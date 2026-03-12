@@ -17,7 +17,7 @@ class WeatherResponse(BaseModel):
     sys_sunset: int
 
     @classmethod
-    def parse_weather(cls, response: Dict[str, str|int|float]) -> WeatherResponse:
+    def parse_weather(cls, response: Dict[str, str|int|float]) -> "WeatherResponse":
         return cls(
             main =              response["weather"][0]["main"],
             description =       response["weather"][0]["description"],
@@ -66,7 +66,7 @@ class AirPollutionResponse(BaseModel):
     aqi_symbol: str
 
     @classmethod
-    def parse_air_pollution(cls, response: Dict[str, int]) -> AirPollutionResponse:
+    def parse_air_pollution(cls, response: Dict[str, int]) -> "AirPollutionResponse":
 
         return cls(
             aqi =  response["list"][0]["main"]["aqi"],

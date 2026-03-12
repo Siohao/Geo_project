@@ -82,7 +82,6 @@ def weather1day_params():
     return {
         "lat": 35,
         "lon": 125,
-        # "trip_date": "2026-03-14"
     }
 
 @pytest.fixture
