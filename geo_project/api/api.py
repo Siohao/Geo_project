@@ -30,7 +30,12 @@ class GoogleMapsClient:
             return response.json()
         except requests.RequestException as e:
             logger.error("Błąd pobierania danych:", e)
-            return None    
+            return {
+                "geocoded_waypoints": [],
+                "routes": [],
+                "status": "ERROR",
+                "message": str(e)
+            }    
     
     def get_poi (self, lat: float, lon: float, rad: int, max_res: int, inc_types: list[str]) -> Dict[str, Any]:
 
@@ -71,7 +76,11 @@ class GoogleMapsClient:
             return response.json()
         except requests.RequestException as e:
             logger.error("Błąd pobierania danych:", e)
-            return None    
+            return {
+                "results": [],
+                "status": "ERROR",
+                "message": str(e)
+            }   
 
     def fake_get_directions(self, origin: str, destination: str, mode: str) -> Dict[str, Any]:
         return {
@@ -114,7 +123,10 @@ class WeatherMapClient:
             return response.json()
         except requests.RequestException as e:
             logger.error("Błąd pobierania danych:", e)
-            return None
+            return {
+            "cod": "401",
+            "message": str(e)
+            }
     
 
     def get_air_pollution(self, lat: str, lon: str) -> Dict[str, Any]:
@@ -135,13 +147,17 @@ class WeatherMapClient:
             return response.json()
         except requests.RequestException as e:
             logger.error("Błąd pobierania danych:", e)
-            return None
+            return {
+                "coord": {},
+                "list": [],
+                "cod": "REQUEST_FAILED",
+                "message": str(e)
+            }
     
 
 class OSMOverpass:
 
-    # overpass_url = "http://localhost:12346/api/interpreter"
-    overpass_url = "http://overpass_sk/api/interpreter"
+    overpass_url = os.getenv("OVERPASS_URL", "http://overpass_sk/api/interpreter")
 
     def __init__(self):
         pass
@@ -180,7 +196,11 @@ class OSMOverpass:
             return geo_response
         except requests.RequestException as e:
             logger.error("Błąd pobierania danych:", e)
-            return None
+            return {
+                "type": "",
+                "features": [],
+                "message": str(e)
+            }
 
     def get_viewpoints(self, south: float, west: float, north: float, east: float, tags: Dict[str, str]) -> Dict[str, Any]:
 
@@ -205,4 +225,7 @@ class OSMOverpass:
             return response.json()
         except requests.RequestException as e:
             logger.error("Błąd pobierania danych:", e)
-            return None
+            return {
+                "elements": [],
+                "message": str(e)
+            }

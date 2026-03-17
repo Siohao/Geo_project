@@ -34,9 +34,9 @@ class OverPass:
 
     def get_hiking_routes_summary(self, radius: int, lon: float, lat: float, element: str, tags: Dict[str, Union[str, list[str], None]], id: int) -> Dict[str, Any]:
         
-        conn = get_conn()
+        conn: Any = get_conn()
         try:
-            repo = PlacesRepository()
+            repo: PlacesRepository = PlacesRepository()
             
             if (repo.check_trails_for_point_in_db(conn, id)):
                 hiking_routes_summary: Dict[str, Any] = self.client.get_hiking_routes(radius, lon, lat, element, tags)
@@ -57,15 +57,15 @@ class OverPass:
             release_conn(conn)
 
     
-    def get_viewpoints_summary(self, south: float, west: float, north: float, east: float, tags: Dict[str, str]) -> Dict[str, Any]:
+    def get_viewpoints_summary(self, south: float, west: float, north: float, east: float, tags: Dict[str, str]) -> OSMPointsResponse:
 
         viewpoints_summary: Dict[str, Any] = self.client.get_viewpoints(south, west, north, east, tags=tags)
-        viewpoints_parsed: OSMPointsResponse = OSMPointsResponse.parse_oms_points(viewpoints_summary)
+        viewpoints_parsed: OSMPointsResponse = OSMPointsResponse.parse_osm_points(viewpoints_summary)
 
-        conn = get_conn()
+        conn: Any = get_conn()
 
         try:
-            repo = PlacesRepository()
+            repo: PlacesRepository = PlacesRepository()
             repo.save_many_points(conn, viewpoints_parsed)
             conn.commit()
         except Exception:
