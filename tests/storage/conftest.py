@@ -14,11 +14,16 @@ def db_conn():
 
     with conn.cursor() as cur:
         cur.execute("CREATE SCHEMA IF NOT EXISTS test_schema")
-        cur.execute("SET search_path TO test_schema")
+        cur.execute("SET search_path TO test_schema, public")
         cur.execute("DROP TABLE IF EXISTS trips_test")
         cur.execute("""
                 CREATE TABLE trips_test (
-                    map_id SERIAL PRIMARY KEY,
+                    id NUMERIC,
+                    name TEXT,
+                    map_id NUMERIC UNIQUE,
+                    geom Geometry (Point, 4326),
+                    place_type TEXT,
+                    height DOUBLE PRECISION,
                     last_checked TIMESTAMP
                 )
         """)
