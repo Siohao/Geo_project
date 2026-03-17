@@ -1,0 +1,30 @@
+import psycopg2
+import pytest
+
+@pytest.fixture(scope="module")
+def db_conn():
+    conn = psycopg2.connect(
+        dbname= "test_db",
+        user= "test_user",
+        password= "test123",
+        host= "localhost",
+        port= 5432
+    )
+    conn.autocommit = True
+
+    with conn.cursor() as cur:
+        cur.execute("CREATE SCHEMA IF NOT EXISTS test_schema")
+        cur.execute("SET search_path TO test_schema")
+        cur.execute("DROP TABLE IF EXISTS trips_test")
+        cur.execute("""
+                CREATE TABLE trips_test (
+                    map_id SERIAL PRIMARY KEY,
+                    last_checked TIMESTAMP
+                )
+        """)
+    
+    yield conn
+
+    with conn.cursor() as cur:
+        cur.execute("DROP TABLE IF EXISTS trips_test")
+    conn.close()

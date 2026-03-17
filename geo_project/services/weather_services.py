@@ -37,7 +37,7 @@ class WeatherServices:
 
         air_obj.aqi_symbol = self.aqi_symbol(air_obj.aqi)
 
-        w_a_summary =  WeatherAirSummary(weather_obj, air_obj)
+        w_a_summary: WeatherAirSummary =  WeatherAirSummary(weather_obj, air_obj)
     
         return asdict(w_a_summary)
     

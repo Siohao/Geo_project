@@ -1,9 +1,11 @@
 import pytest
 from fastapi.testclient import TestClient
 from datetime import date
+from unittest.mock import MagicMock
 from geo_project.main import app
-from geo_project.frontend_logic.frontend_utils import get_overpass_service
-from geo_project.frontend_logic.frontend_utils import get_weather_service
+from geo_project.frontend_logic.frontend_utils import (get_overpass_service,
+                                                       get_weather_service,
+                                                       get_calendar_service)
 
 
 class MockOverpass:
@@ -20,10 +22,6 @@ class MockOverpass:
                 {"id": id, "name": f"Mock route {id}"}
             ]
         }
-    
-@pytest.fixture
-def mock_overpass():
-    return MockOverpass()
 
 class MockWeatherServices:
     def get_weather_summary(self,
@@ -44,16 +42,37 @@ class MockWeatherServices:
                 {"dt": 1772420400, "name": "MockWeather5Day"}
             ]
         }
+
+class CalendarServices:
+    def send_event_calendar(self,
+                            lan: float,
+                            lon: float,
+                            id: int,
+                            trip_date: date,
+                            location_name:str
+    ):
+        return {
+            'done': ''
+        }
     
+@pytest.fixture
+def mock_overpass():
+    return MockOverpass()
+
 @pytest.fixture
 def mock_weather():
     return MockWeatherServices()
 
 @pytest.fixture
-def client(mock_overpass, mock_weather):
+def mock_calendar():
+    return MagicMock(spec=CalendarServices)
+
+@pytest.fixture
+def client(mock_overpass, mock_weather, mock_calendar):
 
     app.dependency_overrides[get_overpass_service] = lambda: mock_overpass
     app.dependency_overrides[get_weather_service] = lambda: mock_weather
+    app.dependency_overrides[get_calendar_service] = lambda: mock_calendar
 
     with TestClient(app) as c:
         yield c
@@ -72,21 +91,37 @@ def bbox_params():
 @pytest.fixture
 def location_params():
     return {
-        "lat": 35,
-        "lon": 125,
+        "lat": 35.0,
+        "lon": 125.0,
         "id": 1
     }
 
 @pytest.fixture
 def weather1day_params():
     return {
-        "lat": 35,
-        "lon": 125,
+        "lat": 35.0,
+        "lon": 125.0,
     }
 
 @pytest.fixture
 def weather5days_params():
     return {
-        "lat": 35,
-        "lon": 125
+        "lat": 35.0,
+        "lon": 125.0
+    }
+
+@pytest.fixture
+def save_trip_to_calendar_params():
+    return {
+        "lat": 35.0,
+        "lon": 125.0,
+        "id": 2,
+        "trip_date": '2026-03-12',
+        "location_name": "Test"
+    }
+
+@pytest.fixture
+def get_trip_from_calendar_uuid_params():
+    return {
+        "uuid": "abc123"
     }

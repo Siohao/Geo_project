@@ -45,7 +45,7 @@ class MapResponsePOI(BaseModel):
 class OSMPointsResponse(BaseModel):
 
     @classmethod
-    def parse_oms_points(cls, response: Dict[str, Any]) -> Dict[str, Any]:
+    def parse_osm_points(cls, response: Dict[str, Any]) -> Dict[str, Any]:
 
         return {
             "type": "FeatureCollection",
