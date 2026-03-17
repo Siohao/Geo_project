@@ -19,8 +19,8 @@ class PlacesRepository:
             return True #No trails need to get them from API
         return False #There are trails for that point
         
-    def update_last_check_for_point (self, conn: Any, id: int):
-        now: datetime = datetime.datetime.now()
+    def update_last_check_for_point (self, conn: Any, id: int, now_fn:datetime = datetime.datetime.now()):
+        now: datetime = now_fn()
         with conn.cursor() as cur:
             cur.execute("UPDATE trips_test SET last_checked=%s WHERE map_id=%s", (now, id))
 
