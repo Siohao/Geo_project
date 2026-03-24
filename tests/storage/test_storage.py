@@ -12,7 +12,7 @@ def test_old_row_returns_true(db_conn):
     with db_conn.cursor() as cur:
         cur.execute(
             """
-            INSERT INTO trips_test (map_id, last_checked)
+            INSERT INTO map_points (map_id, last_checked)
             VALUES (%s, %s)
         """, (1, old_date)
         )
@@ -26,7 +26,7 @@ def test_old_row_returns_false(db_conn):
     with db_conn.cursor() as cur:
         cur.execute(
             """
-            INSERT INTO trips_test (map_id, last_checked)
+            INSERT INTO map_points (map_id, last_checked)
             VALUES (%s, %s)
         """, (2, recent_date)
         )
@@ -43,7 +43,7 @@ def test_update_last_check_for_point(db_conn):
     repo.update_last_check_for_point(db_conn, 1, fake_now)
 
     with db_conn.cursor() as cur:
-        cur.execute("SELECT last_checked FROM trips_test WHERE map_id=%s", (1,))
+        cur.execute("SELECT last_checked FROM map_points WHERE map_id=%s", (1,))
         result = cur.fetchone()
 
     assert result[0] == fake_now()
@@ -70,7 +70,7 @@ def test_save_many_points(db_conn):
     mock_repo.save_many_points(db_conn, points=data)
 
     with db_conn.cursor() as cur:
-        cur.execute("SELECT name FROM trips_test WHERE map_id=%s", (3,))
+        cur.execute("SELECT name FROM map_points WHERE map_id=%s", (3,))
         result = cur.fetchone()
 
     assert result[0] == "Test Name"

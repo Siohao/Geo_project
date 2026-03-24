@@ -15,9 +15,9 @@ def db_conn():
     with conn.cursor() as cur:
         cur.execute("CREATE SCHEMA IF NOT EXISTS test_schema")
         cur.execute("SET search_path TO test_schema, public")
-        cur.execute("DROP TABLE IF EXISTS trips_test")
+        cur.execute("DROP TABLE IF EXISTS map_points")
         cur.execute("""
-                CREATE TABLE trips_test (
+                CREATE TABLE map_points (
                     id NUMERIC,
                     name TEXT,
                     map_id NUMERIC UNIQUE,
@@ -31,5 +31,5 @@ def db_conn():
     yield conn
 
     with conn.cursor() as cur:
-        cur.execute("DROP TABLE IF EXISTS trips_test")
+        cur.execute("DROP TABLE IF EXISTS map_points")
     conn.close()

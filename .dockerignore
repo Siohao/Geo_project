@@ -4,3 +4,4 @@ __pycache__
 *.pyc
 geo_project/tokens/
 docker_db_frontend
+logs/

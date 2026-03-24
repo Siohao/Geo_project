@@ -30,10 +30,11 @@ def get_cache():
 
 def cache(key_prefix: str, ttl: int = 60):
     def decorator(func: Callable):
-        if os.getenv("DISABLE_CACHE") == "1":
-            return func
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
+            if os.getenv("DISABLE_CACHE") == "1":
+                return func(*args, **kwargs)
+            
             r = get_cache()
             safe_args = args[1:]
             key_data: Dict[str, Any] = {
