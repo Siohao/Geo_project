@@ -31,7 +31,7 @@ class PlacesRepository:
         with conn.cursor() as cur:
             for poi in pois:
                 if poi.latitude is None or poi.longitude is None:
-                    continue  # pomijamy punkty bez współrzędnych
+                    continue #just continue if point don't have lat nor long
 
                 cur.execute(
                     """
@@ -42,7 +42,7 @@ class PlacesRepository:
                     (
                         poi.place_id,
                         poi.name,
-                        poi.longitude,   # uwaga: ST_MakePoint(longitude, latitude)
+                        poi.longitude,   # caution: ST_MakePoint(longitude, latitude)
                         poi.latitude,
                         poi.place_type,
                         poi.place_url
@@ -57,7 +57,7 @@ class PlacesRepository:
             for point in points.get("features", []):
                 coordinates: list[float] = point.get("geometry", {}).get("coordinates")
                 if coordinates[0] is None or coordinates[1] is None:
-                    continue  # pomijamy punkty bez współrzędnych
+                    continue  #just continue if point don't have coordinations
 
                 cur.execute(
                     """
@@ -68,7 +68,7 @@ class PlacesRepository:
                     (
                         point.get("properties", {}).get("Name"),
                         point.get("properties", {}).get("Id"),
-                        coordinates[0],   # uwaga: ST_MakePoint(longitude, latitude)
+                        coordinates[0],   # caution: ST_MakePoint(longitude, latitude)
                         coordinates[1],
                         point.get("properties", {}).get("Type"),
                         point.get("properties", {}).get("Height")
@@ -80,8 +80,8 @@ class PlacesRepository:
         with conn.cursor() as cur:
             for feature in trails_summary["features"]:
                 trail_id = feature["id"]
-                geometry_json = json.dumps(feature["geometry"])   # tylko geometry!
-                props_json = json.dumps(feature["properties"])    # properties jako JSON
+                geometry_json = json.dumps(feature["geometry"])   # only geometry!
+                props_json = json.dumps(feature["properties"])    # properties as JSON
 
                 cur.execute("""
                     INSERT INTO trip_points (id, geom, properties)
