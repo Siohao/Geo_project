@@ -9,7 +9,7 @@ from geo_project.frontend_logic.frontend_utils import (
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
 
-@router.get("/calendar_event")
+@router.get("/calendar-event")
 def save_trip_to_calendar(lat: float,
                           lon: float,
                           id: int,

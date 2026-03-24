@@ -2,6 +2,7 @@ from geo_project.api.api import WeatherMapClient
 from geo_project.storage.storage import WeatherRepository
 from geo_project.models.weather_models import ForecastResponse, ForecastItems, ForecastSummary, WeatherResponse, AirPollutionResponse
 from geo_project.storage.db import get_conn, release_conn
+from geo_project.storage.cache import cache
 from typing import Dict, Any
 from datetime import timezone, timedelta, datetime
 from dataclasses import asdict, dataclass
@@ -41,6 +42,7 @@ class WeatherServices:
     
         return asdict(w_a_summary)
     
+    @cache(key_prefix="weather", ttl=10800)
     def get_forecast_summary(self, lat:str, lon: str) -> Any:
          
         forecast_summary: Dict[str, Any] = self.client.get_weather(lat, lon)

@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  db:
+    #image: postgis/postgis:16-3.5
+    build: .
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: geo_project_db
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_cron
+      -c cron.database_name=geo_project_db
+
+volumes:
+  postgres_data:

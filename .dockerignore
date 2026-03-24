@@ -3,3 +3,4 @@ __pycache__
 .git
 *.pyc
 geo_project/tokens/
+docker_db_frontend

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>South Korea hiking map</title>
+
+    <link rel="stylesheet" 
+          href="https://unpkg.com/leaflet/dist/leaflet.css" />
+	<link rel="stylesheet" 
+		  href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <style>
+        #map {
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+let selectedTripDate = null;
+let firstDate = true;
+let currentPopupLayer = null;
+let location_name = null;
+// ------------------------------
+// Funkcja: Kalendarz
+function addDatePickerControl(map) {
+
+    const dateControl = L.control({ position: "topright" });
+
+    dateControl.onAdd = function(map) {
+
+        const container = L.DomUtil.create("div");
+        container.style.background = "white";
+        container.style.padding = "8px";
+        container.style.borderRadius = "6px";
+        container.style.boxShadow = "0 0 6px rgba(0,0,0,0.2)";
+
+        container.innerHTML = `
+            <label style="font-size:12px;"><b>Trip date:</b></label><br>
+            <input id="tripDateInput" 
+                   style="width:140px; padding:4px; margin-top:4px;" 
+                   placeholder="Select date">
+        `;
+
+        L.DomEvent.disableClickPropagation(container);
+
+        return container;
+    };
+
+    dateControl.addTo(map);
+
+    const today = new Date();
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + 5);
+
+    flatpickr("#tripDateInput", {
+        minDate: today,
+        maxDate: maxDate,
+        dateFormat: "Y-m-d",
+        defaultDate: today,
+        onChange: function(selectedDates, dateStr) {
+            selectedTripDate = dateStr;
+			console.log("TripDate:", selectedTripDate);
+			console.log("current:", currentPopupLayer);
+			
+            if (currentPopupLayer) { // np. trzymasz aktualnie otwarty layer
+				console.log("W current");
+				const lat = currentPopupLayer.feature.geometry.coordinates[1];
+				const lon = currentPopupLayer.feature.geometry.coordinates[0];
+				updatePopupWeather(currentPopupLayer, lat, lon, selectedTripDate);
+			}
+        }
+    });
+	if (firstDate) {
+		firstDate = false;
+		selectedTripDate = today;
+	}	
+	
+    selectedTripDate = today.toISOString().split("T")[0];
+	console.log("TripDate:", selectedTripDate);
+}
+// ------------------------------
+// Funkcja: kolor dla SAC
+function getColorBySacScale(sac) {
+
+    switch (sac) {
+        case "hiking":
+            return "green";
+
+        case "mountain_hiking":
+            return "blue";
+
+        case "demanding_mountain_hiking":
+            return "orange";
+
+        case "alpine_hiking":
+            return "red";
+
+        case "demanding_alpine_hiking":
+            return "purple";
+
+        case "difficult_alpine_hiking":
+            return "black";
+
+        default:
+            return "cyan";
+    }
+}
+
+// ------------------------------
+// Funkcja: generowanie popupu dla szczytu
+function createPeakPopup(feature) {
+    const lat = feature.geometry.coordinates[1];
+    const lon = feature.geometry.coordinates[0];
+
+    let popupContent = "";
+    for (let key in feature.properties) {
+		if (feature.properties[key] != null) {
+			popupContent += `<b>${key}</b>: ${feature.properties[key]}<br>`;
+		}
+    }
+
+    popupContent += `<br>
+        <button class="route-btn" data-lat="${lat}" data-lon="${lon}">
+            Routes around
+        </button>`;
+		
+	popupContent += `<br>
+        <button class="premade-route-btn" data-lat="${lat}" data-lon="${lon}">
+            Premade routes around
+        </button>`;
+		
+	popupContent += `<br>
+        <button class="calendar-btn" data-lat="${lat}" data-lon="${lon}">
+            Create calendar event
+        </button>`;
+		
+	popupContent += `<br>
+        <button class="weather-btn" data-lat="${lat}" data-lon="${lon}">
+            Weather at point
+        </button>`;
+		
+	popupContent += `
+		<div class="weather-section"></div>
+	`;
+
+    return popupContent;
+}
+// ------------------------------
+// Funkcja: Tworzenie eventu w kalendarzu 
+function createGoogleCalendarEvent (map, lat, lon, id, url) {
+	fetch (`${url}?lat=${lat}&lon=${lon}&id=${id}&trip_date=${selectedTripDate}&location_name=${location_name}`)
+	.then(res => res.json())
+	.then(data => {
+		alert("Event created!");
+	})     
+    .catch(err => console.error(err));
+}
+// ------------------------------
+// Funkcja: Sprawdzania stanu dla przycisku do tworzenia eventu w kalendarzu
+function updateCalendarButtonState(layer, popupNode) {
+
+    const calendarBtn = popupNode.querySelector(".calendar-btn");
+    if (!calendarBtn) return;
+
+    const ready =
+        layer.tripState.routesLoaded &&
+        layer.tripState.weatherLoaded &&
+        selectedTripDate;
+
+    calendarBtn.disabled = !ready;
+    calendarBtn.style.opacity = ready ? "1" : "0.5";
+    calendarBtn.style.cursor = ready ? "pointer" : "not-allowed";
+}
+// ------------------------------
+// Funkcja: dodanie GeoJSON na mapę
+function addGeoJSONToMap(data, map) {
+    return L.geoJSON(data, {
+        onEachFeature: function(feature, layer) {
+            if (feature.properties) {
+                layer.bindPopup(createPeakPopup(feature));
+            }
+
+            // Obsługa kliknięcia w przycisk popup
+            layer.on("popupopen", function(e) {
+				currentPopupLayer = e.target;
+                const popupNode = e.popup._contentNode;
+
+                if (!layer.tripState) {
+                    layer.tripState = {
+                        routesLoaded: false,
+                        weatherLoaded: false
+                    };
+                } else {
+                    // reset przy ponownym otwarciu
+                    layer.tripState.routesLoaded = false;
+                    layer.tripState.weatherLoaded = false;
+                }
+
+                updateCalendarButtonState(layer, popupNode);
+				
+				if (!layer.basePopupContent) {
+					layer.basePopupContent = layer.getPopup().getContent();
+				}
+				
+                const button_routes = popupNode.querySelector(".route-btn");
+                if (button_routes) {
+                    button_routes.addEventListener("click", function() {
+                        fetchRoutesAndDraw(map, layer, this.dataset.lat, this.dataset.lon, feature.properties.Id,  "http://192.168.1.16:8000/osm/routes");
+                    });
+                }
+				const button_premade = popupNode.querySelector(".premade-route-btn");
+                if (button_premade) {
+                    button_premade.addEventListener("click", function() {
+                        fetchRoutesAndDraw(map, layer, this.dataset.lat, this.dataset.lon, feature.properties.Id,  "http://192.168.1.16:8000/osm/premade-routes");
+                    });
+                }
+				
+				if (!selectedTripDate) {
+					button_weather.disabled = true;
+					button_google_calendar.disabled = true;
+				}
+				
+				const button_google_calendar = popupNode.querySelector(".calendar-btn");
+				if (button_google_calendar) {
+					button_google_calendar.addEventListener("click", function() {
+						createGoogleCalendarEvent(map, this.dataset.lat, this.dataset.lon, feature.properties.Id, "http://192.168.1.16:8000/calendar/calendar-event");
+					});
+				}
+				
+				const button_weather = popupNode.querySelector(".weather-btn");
+				if (button_weather) {
+					button_weather.addEventListener("click", function() {
+						fetchWeatherAndReplace(layer, feature);
+					});
+				}
+				
+				if (selectedTripDate) {
+                    updatePopupWeather(layer, feature.geometry.coordinates[1], feature.geometry.coordinates[0], selectedTripDate);
+                }
+            });
+        }
+    }).addTo(map);
+}
+
+// ------------------------------
+// Funkcja: pobranie tras i narysowanie na mapie
+let routesLayer;
+function fetchRoutesAndDraw(map, layer, lat, lon, id, url) {
+    fetch(`${url}?lat=${lat}&lon=${lon}&id=${id}`)
+        .then(res => res.json())
+        .then(routesData => {
+            if (routesLayer) map.removeLayer(routesLayer);
+
+            routesLayer = L.geoJSON(routesData, {
+                style: feature => ({
+                    color: getColorBySacScale(feature.properties.sac_scale),
+                    weight: 3,
+                    opacity: 0.9
+                })
+            }).addTo(map);
+        layer.tripState.routesLoaded = true;
+
+        const popupNode = layer.getPopup().getElement();
+        updateCalendarButtonState(layer, popupNode);
+        })
+        .catch(err => console.error(err));
+}
+// ------------------------------
+// Klucz: `${lat},${lon}`, wartość: forecast_items
+const weatherCache = {};
+// Funkcja: pobieranie danych o pogodzie w danym punkcie
+function fetchWeatherAndReplace(layer, feature) {
+
+    const lat = feature.geometry.coordinates[1];
+    const lon = feature.geometry.coordinates[0];
+	
+	if (weatherCache[`${lat},${lon}`]) {
+        updatePopupWeather(layer, lat, lon, selectedTripDate);
+        //layer.openPopup();
+        return;
+    }
+
+	fetch(`http://192.168.1.16:8000/owm/day-weather-forecast?lat=${lat}&lon=${lon}`)
+		.then(res => res.json())
+		.then(data => {
+		  weatherCache[`${lat},${lon}`] = data.forecast_items;
+          location_name = data.forecast_info[0].city_name;
+		  updatePopupWeather(layer, lat, lon, selectedTripDate);
+          layer.tripState.weatherLoaded = true;
+          const popupNode = layer.getPopup().getElement();
+          updateCalendarButtonState(layer, popupNode);
+	})
+	.catch(err => console.error(err));
+}
+
+// ------------------------------
+function updatePopupWeather(layer, lat, lon, dateStr) {
+    const forecast_items = weatherCache[`${lat},${lon}`];
+    if (!forecast_items) return; // jeśli jeszcze nie pobrano danych
+
+    const weatherForSelectedDay = forecast_items.find(item =>
+      item.local_time.some(time => time.startsWith(dateStr))
+    );
+
+    // zmienne domyślne
+    let hours = "No data", temp = "No data", feels = "No data",
+        humidity = "No data", pressure = "No data",
+        description = "No data", wind = "No data",
+        visibility = "No data", rain_3h = "No data";
+
+    if (weatherForSelectedDay) {
+        hours = weatherForSelectedDay.local_time.map(t => t.substring(11,16)).join(" | ");
+        temp = weatherForSelectedDay.temp.join(" | ");
+        feels = weatherForSelectedDay.temp_feels_like.join(" | ");
+        humidity = weatherForSelectedDay.humidity.join(" | ");
+        pressure = weatherForSelectedDay.pressure.join(" | ");
+        description = weatherForSelectedDay.weather_description.join(" | ");
+        wind = weatherForSelectedDay.wind_speed.join(" | ");
+        visibility = weatherForSelectedDay.visibility.join(" | ");
+        rain_3h = weatherForSelectedDay.rain_3h.join(" | ");
+    }
+
+	const popup = layer.getPopup();
+    if (!popup || !popup.isOpen()) return;
+
+    const popupNode = popup.getElement();
+    const weatherDiv = popupNode.querySelector(".weather-section");
+
+    if (!weatherDiv) return;
+
+    weatherDiv.innerHTML = `
+        <br><b>Weather:</b><br>
+			📅 ${selectedTripDate}<br>
+            ⌚ ${hours}<br>
+            ☀ ${description}<br>
+            🌡 ${temp} °C (feels ${feels} °C)<br>
+            💧 ${humidity}%<br>
+            🌧️ ${rain_3h}<br>
+            🔵 ${pressure} hPa<br>
+            🌬 ${wind} m/s<br>
+            👁 Visibility: ${visibility} m
+        `;
+}
+// Funkcja: obsługa przycisku BBOX
+let peaksViewLayer;
+function createBBoxButton(map, options) {
+    // options = { url, buttonText, maxDiff, layerVar }
+    const { url, buttonText, maxDiff = 0.08, layerVarName } = options;
+
+    const bboxButton = L.control({ position: "topleft" });
+
+    bboxButton.onAdd = function(map) {
+        const button = L.DomUtil.create("button", "bbox-button");
+        button.innerHTML = buttonText;
+        button.style.background = "white";
+        button.style.padding = "5px";
+        button.style.cursor = "pointer";
+
+        L.DomEvent.disableClickPropagation(button);
+
+        button.onclick = function() {
+            const bounds = map.getBounds();
+            const south = bounds.getSouth();
+            const west = bounds.getWest();
+            const north = bounds.getNorth();
+            const east = bounds.getEast();
+
+            if (north - south > maxDiff || east - west > maxDiff) {
+                alert("Zmniejsz okno mapy");
+                return;
+            }
+
+            fetch(`${url}?south=${south}&west=${west}&north=${north}&east=${east}`)
+                .then(res => res.json())
+                .then(data => {
+                    // obsługa warstwy (globalna zmienna)
+					console.log("Id:", data.features[0].properties.Id);
+                    if (window[layerVarName]) map.removeLayer(window[layerVarName]);
+                    window[layerVarName] = addGeoJSONToMap(data, map);
+                })
+                .catch(err => console.error(err));
+        };
+
+        return button;
+    };
+
+    bboxButton.addTo(map);
+}
+// ------------------------------
+// Funkcja: dodanie legendy
+function addLegend(map) {
+    const legend = L.control({position: "bottomright"});
+    legend.onAdd = function(map) {
+        const div = L.DomUtil.create("div", "info legend");
+        div.innerHTML = `
+            <b>Hiking level (SAC)</b><br>
+            <i style="background:green;width:12px;height:12px;display:inline-block"></i> Hiking<br>
+            <i style="background:blue;width:12px;height:12px;display:inline-block"></i> Mountain Hiking<br>
+            <i style="background:red;width:12px;height:12px;display:inline-block"></i> Alpine<br>
+            <i style="background:black;width:12px;height:12px;display:inline-block"></i> Difficult Alpine<br>
+            <i style="background:cyan;width:12px;height:12px;display:inline-block"></i> No information
+        `;
+        return div;
+    };
+    legend.addTo(map);
+}
+
+function event_from_calendar(eventId) {
+    let eventId_routesLayer;
+
+    const map = L.map('map', {preferCanvas: true}).setView([36.5, 127.8], 7);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    console.log("Event ID:", eventId);
+
+    fetch(`http://192.168.1.16:8000/calendar/event?uuid=${eventId}`)
+        .then(res => res.json())
+        .then(data => {
+            console.log("Event data:", data);
+
+            //Dodanie ścieżek:
+            if (eventId_routesLayer) map.removeLayer(eventId_routesLayer);
+            eventId_routesLayer = L.geoJSON(data, {
+                style: feature => ({
+                    color: getColorBySacScale(feature.properties.sac_scale),
+                    weight: 3,
+                    opacity: 0.9
+                })
+            }).addTo(map);
+
+            console.log("Trip_info:",data.trip_info);
+
+            if (data.trip_info && data.trip_info.point_coor) {
+
+                const coords = data.trip_info.point_coor;
+                console.log("coords:", coords);
+
+                const lat = coords.coordinates[1];
+                const lon = coords.coordinates[0];
+
+                if (data.trip_info.weather) {
+                    weatherCache[`${lat},${lon}`] = data.trip_info.weather.forecast_items;
+                }
+                selectedTripDate = data.trip_info.trip_date;
+
+                const marker = L.marker([lat, lon]).addTo(map);
+
+                marker.bindPopup(`
+                    <b>Event point</b><br>
+                    Name: ${data.trip_info.point_name}<br>
+                    Type: ${data.trip_info.point_type}<br>
+                    High: ${data.trip_info.point_high}<br>
+                    Trip date: ${data.trip_info.trip_date}
+                    <div class="weather-section"></div>
+                `);
+
+                marker.on("popupopen", function() {
+                    updatePopupWeather(marker, lat, lon, selectedTripDate);
+                });
+            }
+
+            const geoLayer = L.geoJSON(data).addTo(map);
+            map.fitBounds(geoLayer.getBounds());
+        });
+    
+
+    addLegend(map)
+}
+
+// ------------------------------
+// Funkcja: inicjalizacja mapy
+function initMap() {
+    const map = L.map('map', {preferCanvas: true}).setView([36.5, 127.8], 7);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    createBBoxButton(map, {
+		url: "http://192.168.1.16:8000/osm/peaks",
+		buttonText: "Mountain Peaks",
+		layerVarName: "peaksViewLayer"
+	});
+
+	createBBoxButton(map, {
+		url: "http://192.168.1.16:8000/osm/viewpoints",
+		buttonText: "Viewpoints",
+		layerVarName: "peaksViewLayer"
+	});
+
+    addLegend(map);
+	addDatePickerControl(map);
+}
+
+// ------------------------------
+// Start
+document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get("event_id");
+
+    if (eventId) {
+        event_from_calendar(eventId);
+    } else {
+        initMap();
+    }
+});
+</script>
+
+</body>
+</html>

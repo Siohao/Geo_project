@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 CALENDAR_ENDPOINTS: list = [
-    "/calendar/calendar_event",
+    "/calendar/calendar-event",
     "/calendar/event"
 ]
 

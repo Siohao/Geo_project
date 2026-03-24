@@ -6,6 +6,7 @@ from geo_project.models.map_models import OSMPointsResponse
 from typing import Dict, Any, Union
 from geo_project.storage.storage import PlacesRepository
 from geo_project.storage.db import get_conn, release_conn
+from geo_project.storage.cache import cache
 
 class MapServices: 
 
@@ -32,6 +33,7 @@ class OverPass:
     def __init__(self, client: OSMOverpass):
         self.client = client
 
+    @cache(key_prefix= "routes", ttl=300)
     def get_hiking_routes_summary(self, radius: int, lon: float, lat: float, element: str, tags: Dict[str, Union[str, list[str], None]], id: int) -> Dict[str, Any]:
         
         conn: Any = get_conn()
@@ -56,7 +58,6 @@ class OverPass:
         finally:
             release_conn(conn)
 
-    
     def get_viewpoints_summary(self, south: float, west: float, north: float, east: float, tags: Dict[str, str]) -> OSMPointsResponse:
 
         viewpoints_summary: Dict[str, Any] = self.client.get_viewpoints(south, west, north, east, tags=tags)

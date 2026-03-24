@@ -1,4 +1,4 @@
-import pytest
+import pytest, os
 from fastapi.testclient import TestClient
 from datetime import date
 from unittest.mock import MagicMock
@@ -7,6 +7,8 @@ from geo_project.frontend_logic.frontend_utils import (get_overpass_service,
                                                        get_weather_service,
                                                        get_calendar_service)
 
+def pytest_configure():
+    os.environ["DISABLE_CACHE"] = "1"
 
 class MockOverpass:
     def get_viewpoints_summary(self, south, west, north, east, tags):
