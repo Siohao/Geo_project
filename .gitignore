@@ -3,3 +3,4 @@ __pycache__/
 .env
 venv/
 geo_project/tokens/
+logs/

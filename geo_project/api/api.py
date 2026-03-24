@@ -1,5 +1,6 @@
 from typing import Any, Dict, Union
 from osmtogeojson import osmtogeojson
+from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
 import requests
 import os
 import time
@@ -15,6 +16,10 @@ class GoogleMapsClient:
     def __init__(self):
         self.api_key = os.getenv("GOOGLE_API_KEY")
 
+    @retry(stop=stop_after_attempt(3),
+           wait=wait_fixed(2),
+           retry=retry_if_exception_type(requests.RequestException)
+    )
     def get_directions (self, origin: str, destination: str, mode: str) -> Dict[str, Any]:
         url: str = "https://maps.googleapis.com/maps/api/directions/json"
         params: Dict[str, str] = {
@@ -25,18 +30,17 @@ class GoogleMapsClient:
         }
 
         try:
-            response: Dict[str, Any] = requests.get(url, params = params)
+            response: Dict[str, Any] = requests.get(url, params = params, timeout=5)
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            logger.error("Błąd pobierania danych:", e)
-            return {
-                "geocoded_waypoints": [],
-                "routes": [],
-                "status": "ERROR",
-                "message": str(e)
-            }    
+            logger.error(f"Data download error: {e}")
+            raise
     
+    @retry(stop=stop_after_attempt(3),
+           wait=wait_fixed(2),
+           retry=retry_if_exception_type(requests.RequestException)
+    )
     def get_poi (self, lat: float, lon: float, rad: int, max_res: int, inc_types: list[str]) -> Dict[str, Any]:
 
         url: str = "https://places.googleapis.com/v1/places:searchNearby"
@@ -75,12 +79,8 @@ class GoogleMapsClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            logger.error("Błąd pobierania danych:", e)
-            return {
-                "results": [],
-                "status": "ERROR",
-                "message": str(e)
-            }   
+            logger.error(f"Data download error: {e}")
+            raise
 
     def fake_get_directions(self, origin: str, destination: str, mode: str) -> Dict[str, Any]:
         return {
@@ -103,6 +103,10 @@ class WeatherMapClient:
     def __init__(self):
         self.api_key = os.getenv("WEATHER_API_KEY")
 
+    @retry(stop=stop_after_attempt(3),
+           wait=wait_fixed(2),
+           retry=retry_if_exception_type(requests.RequestException)
+    )
     def get_weather(self, lat: str, lon: str) -> Dict[str, Any]:
         
         # url: str = "https://api.openweathermap.org/data/2.5/weather"
@@ -122,13 +126,13 @@ class WeatherMapClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            logger.error("Błąd pobierania danych:", e)
-            return {
-            "cod": "401",
-            "message": str(e)
-            }
+            logger.error(f"Data download error: {e}")
+            raise
     
-
+    @retry(stop=stop_after_attempt(3),
+           wait=wait_fixed(2),
+           retry=retry_if_exception_type(requests.RequestException)
+    )
     def get_air_pollution(self, lat: str, lon: str) -> Dict[str, Any]:
 
         url: str = "http://api.openweathermap.org/data/2.5/air_pollution"
@@ -146,13 +150,8 @@ class WeatherMapClient:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            logger.error("Błąd pobierania danych:", e)
-            return {
-                "coord": {},
-                "list": [],
-                "cod": "REQUEST_FAILED",
-                "message": str(e)
-            }
+            logger.error(f"Data download error: {e}")
+            raise
     
 
 class OSMOverpass:
@@ -162,6 +161,10 @@ class OSMOverpass:
     def __init__(self):
         pass
 
+    @retry(stop=stop_after_attempt(3),
+           wait=wait_fixed(2),
+           retry=retry_if_exception_type(requests.RequestException)
+    )
     def get_hiking_routes(self, radius: int, lon: float, lat: float, element: str, tags: Dict[str, Union[str, list[str], None]]) -> Dict[str, Any]:
 
         tags_query = ""
@@ -195,13 +198,13 @@ class OSMOverpass:
             geo_response = osmtogeojson.process_osm_json(response.json())
             return geo_response
         except requests.RequestException as e:
-            logger.error("Błąd pobierania danych:", e)
-            return {
-                "type": "",
-                "features": [],
-                "message": str(e)
-            }
+            logger.error(f"Data download error: {e}")
+            raise
 
+    @retry(stop=stop_after_attempt(3),
+           wait=wait_fixed(2),
+           retry=retry_if_exception_type(requests.RequestException)
+    )
     def get_viewpoints(self, south: float, west: float, north: float, east: float, tags: Dict[str, str]) -> Dict[str, Any]:
 
         tags_query = "\n".join(
@@ -224,8 +227,5 @@ class OSMOverpass:
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            logger.error("Błąd pobierania danych:", e)
-            return {
-                "elements": [],
-                "message": str(e)
-            }
+            logger.error(f"Data download error: {e}")
+            raise
