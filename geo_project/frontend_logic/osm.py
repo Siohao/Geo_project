@@ -11,7 +11,7 @@ from geo_project.frontend_logic.frontend_utils import (
                             tags_hiking_routes, 
                             tags_viewpoint)
 
-router = APIRouter(prefix="/OSM", tags=["osm"])
+router = APIRouter(prefix="/osm", tags=["osm"])
 
 @router.get("/peaks")
 def get_mount_peaks_from_box(south: float,
@@ -45,7 +45,7 @@ def get_mount_trails(lat: float,
     data: Dict[str, Any] = service.get_hiking_routes_summary(2000, lat, lon, elements[1], tags_hiking_routes, id)
     return data
 
-@router.get("/premade_routes")
+@router.get("/premade-routes")
 def get_mount_trails(lat: float,
                      lon: float,
                      id: int,

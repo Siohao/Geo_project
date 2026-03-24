@@ -12,17 +12,17 @@ class PlacesRepository:
     def check_trails_for_point_in_db (self, conn: Any, id: int, ttl_days = 30) -> bool:
         cutoff: datetime = datetime.datetime.now() - datetime.timedelta(days=ttl_days)
         with conn.cursor() as cur:
-            cur.execute("SELECT last_checked FROM trips_test WHERE map_id=%s", (id,))
+            cur.execute("SELECT last_checked FROM map_points WHERE map_id=%s", (id,))
             row: Optional[Tuple] = cur.fetchone()
 
         if row is None or row[0] is None or row[0] < cutoff:
             return True #No trails need to get them from API
         return False #There are trails for that point
         
-    def update_last_check_for_point (self, conn: Any, id: int, now_fn:datetime = datetime.datetime.now()):
+    def update_last_check_for_point (self, conn: Any, id: int, now_fn= datetime.datetime.now):
         now: datetime = now_fn()
         with conn.cursor() as cur:
-            cur.execute("UPDATE trips_test SET last_checked=%s WHERE map_id=%s", (now, id))
+            cur.execute("UPDATE map_points SET last_checked=%s WHERE map_id=%s", (now, id))
 
     def save_many(self, conn: Any, pois: list[POI]):
         """
@@ -61,7 +61,7 @@ class PlacesRepository:
 
                 cur.execute(
                     """
-                    INSERT INTO trips_test (name, map_id, geom, place_type, height)
+                    INSERT INTO map_points (name, map_id, geom, place_type, height)
                     VALUES (%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s)
                     ON CONFLICT (map_id) DO NOTHING;
                     """,
@@ -125,7 +125,7 @@ class WeatherRepository:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT raw_json
-                FROM weather_cache
+                FROM weather_forecast
                 WHERE ST_DWithin(
                     geom::geography,
                     ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography,
@@ -139,9 +139,9 @@ class WeatherRepository:
             row: Optional[Tuple] = cur.fetchone()
 
         if row:
-            return row[0]   # mamy cache
+            return row[0]   # There is weather forecast
         else:
-            return None     # trzeba pobrać z API
+            return None     # Need to download forecast from API
 
     def save_weather (self, conn: Any, lon: float, lat: float, response_utc: datetime, json_data: Dict[str, Any], ttl_hours = 3):
 
@@ -149,7 +149,7 @@ class WeatherRepository:
 
         with conn.cursor() as cur:
             cur.execute("""
-                INSERT INTO weather_cache (
+                INSERT INTO weather_forecast (
                     geom,
                     forecast_time,
                     expires_at,
@@ -185,8 +185,8 @@ class CalendarEventRepository:
                     )
                 ) AS full_geojson
                 FROM trips_ t
-                JOIN trips_test tt ON tt.map_id = t.point_id
-                JOIN weather_cache w ON t.weather_id = w.id
+                JOIN map_points tt ON tt.map_id = t.point_id
+                JOIN weather_forecast w ON t.weather_id = w.id
                 CROSS JOIN LATERAL (
                     SELECT jsonb_agg(
                         jsonb_build_object(
@@ -211,7 +211,7 @@ class CalendarEventRepository:
         check_ids: bool = True
 
         with conn.cursor() as cur:
-            cur.execute("SELECT map_id FROM trips_test WHERE map_id=%s", (point_id,))
+            cur.execute("SELECT map_id FROM map_points WHERE map_id=%s", (point_id,))
             row_map_id: Optional[Tuple] = cur.fetchone()
             if row_map_id is None or row_map_id[0] is None:
                 check_ids = False
@@ -235,7 +235,7 @@ class CalendarEventRepository:
 
             cur.execute("""
                 SELECT id
-                FROM weather_cache
+                FROM weather_forecast
                 WHERE ST_DWithin(
                     geom::geography,
                     ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography,

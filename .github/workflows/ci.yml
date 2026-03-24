@@ -48,9 +48,10 @@ jobs:
       - name: Run tests
         env: 
           POSTGRES_HOST: localhost
-          POSTGRAS_NAME: test_db
+          POSTGRES_NAME: test_db
           POSTGRES_USER: test_user
           POSTGRES_PASSWORD: test123
           POSTGRES_PORT: 5432
+          DISABLE_CACHE: 1
         run: |
           pytest

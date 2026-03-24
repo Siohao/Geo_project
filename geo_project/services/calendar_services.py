@@ -4,6 +4,7 @@ from typing import Dict, Any
 from geo_project.storage.storage import CalendarEventRepository
 from geo_project.calendar.geo_calendar import CalendarApi
 from geo_project.storage.db import get_conn, release_conn
+from geo_project.storage.cache import cache
 
 
 

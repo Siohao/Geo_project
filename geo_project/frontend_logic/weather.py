@@ -6,9 +6,9 @@ from geo_project.frontend_logic.frontend_utils import (
                             get_weather_service, 
                             check_inserted_location)
 
-router = APIRouter(prefix="/OWM", tags=["owm"])
+router = APIRouter(prefix="/owm", tags=["owm"])
 
-@router.get("/weather_day_of_trip")
+@router.get("/weather-day-of-trip")
 def get_weather_for_trail_day(lat: float,
                               lon: float,
                               owm_service: WeatherServices = Depends(get_weather_service)) -> Dict[str, Any]:
@@ -17,7 +17,7 @@ def get_weather_for_trail_day(lat: float,
     data: Dict[str, Any] = owm_service.get_weather_summary(lat, lon)
     return data
 
-@router.get("/day_weather_forecast")
+@router.get("/day-weather-forecast")
 def get_forecast_summary_for_5days(lat: float,
                                    lon: float,
                                    owm_service: WeatherServices = Depends(get_weather_service)) -> Any:
