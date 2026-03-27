@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+  db:
+    build: ./DB
+    image: postgres-db
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: geo_project_db
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_cron
+      -c cron.database_name=geo_project_db
+    networks:
+      - geo_network
+
+  redis:
+    image: redis:latest
+    container_name: geo-redis-cache
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - geo_network
+    
+  backend:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    image: geo-backend
+    container_name: geo-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    networks:
+      - geo_network
+
+  frontend:
+    build: ./Frontend
+    image: geo-frontend
+    container_name: geo-frontend
+    restart: always
+    ports:
+      - "5500:80"
+    networks:
+      - geo_network
+
+  overpass:
+    image: wiktorn/overpass-api
+    container_name: sk_overpass
+    restart: unless-stopped
+    ports:
+      - "12346:80"
+    volumes:
+      - ./overpass_db:/db
+    environment:
+      OVERPASS_META: "no"
+      OVERPASS_MODE: "init"
+      OVERPASS_PLANET_URL: "file:///db/south-korea.osm.bz2"
+      OVERPASS_ALLOW_DUPLICATE_QUERIES: "yes"
+      OVERPASS_DIFF_URL: https://download.geofabrik.de/asia/south-korea-updates/
+      OVERPASS_UPDATE_SLEEP: 3600
+      OVERPASS_RULES_LOAD: 10
+      OVERPASS_USE_AREAS: true
+    networks:
+      - geo_network
+
+volumes:
+  postgres_data:
+
+networks:
+  geo_network:
+    external: true
