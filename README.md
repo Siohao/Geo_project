@@ -1,6 +1,8 @@
 # Geo_project
 
-<img src="img/Peaks.jpg" width="600">
+<p align="center">
+    <img src="img/Peaks.jpg" width="600">
+</p>
 
 # 📍 Geo Project
 Aplikacja webowa do planowania wycieczek górskich w Korei Południowej z wykorzystaniem danych z OpenStreetMap.
@@ -79,7 +81,9 @@ Cała aplikacja działa w kontenerach:
 # Testy:
 * pytest
 * coverage
-# Uruchomienie:
+
+# Uruchomienie testów:
+
 ```bash
 pytest
 ```
@@ -117,13 +121,15 @@ Link w wydarzeniu Google Calendar przenosi użytkownika do widoku read-only, kt�
 * lepsze filtrowanie tras
 
 # Uruchomienie:
-Ściągnąć mapę korei z: `http://download.geofabrik.de/asia/south-korea.html`
+Ściągnąć mapę korei z: `http://download.geofabrik.de/asia/south-korea.html`.
 Przekonwertować mapę z typu `.osm.pbf` na `.osm.bz2` przy użyciu `Osmium`. Przekonwertowaną mapę wrzucić do folderu `docker_db_frontend/overpass_db/`.
 Do folderu `geo_project/geo_project/tokens/` wrzucić plik `credentials.json`, który robimy na stronie `https://console.cloud.google.com/`.
 W folderze docker_db_frontend:
+
 ```bash
 docker compose up
 ```
+
 Kontener z mapą może być uruchamiany pierwszy raz około 20 minut.
 Uruchamiamy plik `docker_db_frontend/DB/init/init.sh`.
 Przy pierwszej próbie zapisu wydarzenia do kalendarza będzie trzeba się zalogować w przeglądarce do swojego konta google, by dostać plik `token.json`.
