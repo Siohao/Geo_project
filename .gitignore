@@ -4,3 +4,4 @@ __pycache__/
 venv/
 geo_project/tokens/
 logs/
+docker_db_frontend/overpass_db/*

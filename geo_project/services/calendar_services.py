@@ -18,7 +18,7 @@ class CalendarServices:
         return {
             'summary': 'Hiking Event #geo',
             'location': f'{location_name}',
-            'description': f'Trip: http://192.168.1.16:5500/?event_id={url_uuid}',
+            'description': f'Trip: http://localhost:5500/?event_id={url_uuid}',
             'start': {
                 'date': date_str,
             },

@@ -211,13 +211,13 @@ function addGeoJSONToMap(data, map) {
                 const button_routes = popupNode.querySelector(".route-btn");
                 if (button_routes) {
                     button_routes.addEventListener("click", function() {
-                        fetchRoutesAndDraw(map, layer, this.dataset.lat, this.dataset.lon, feature.properties.Id,  "http://192.168.1.16:8000/osm/routes");
+                        fetchRoutesAndDraw(map, layer, this.dataset.lat, this.dataset.lon, feature.properties.Id,  "http://localhost:8000/osm/routes");
                     });
                 }
 				const button_premade = popupNode.querySelector(".premade-route-btn");
                 if (button_premade) {
                     button_premade.addEventListener("click", function() {
-                        fetchRoutesAndDraw(map, layer, this.dataset.lat, this.dataset.lon, feature.properties.Id,  "http://192.168.1.16:8000/osm/premade-routes");
+                        fetchRoutesAndDraw(map, layer, this.dataset.lat, this.dataset.lon, feature.properties.Id,  "http://localhost:8000/osm/premade-routes");
                     });
                 }
 				
@@ -229,7 +229,7 @@ function addGeoJSONToMap(data, map) {
 				const button_google_calendar = popupNode.querySelector(".calendar-btn");
 				if (button_google_calendar) {
 					button_google_calendar.addEventListener("click", function() {
-						createGoogleCalendarEvent(map, this.dataset.lat, this.dataset.lon, feature.properties.Id, "http://192.168.1.16:8000/calendar/calendar-event");
+						createGoogleCalendarEvent(map, this.dataset.lat, this.dataset.lon, feature.properties.Id, "http://localhost:8000/calendar/calendar-event");
 					});
 				}
 				
@@ -286,7 +286,7 @@ function fetchWeatherAndReplace(layer, feature) {
         return;
     }
 
-	fetch(`http://192.168.1.16:8000/owm/day-weather-forecast?lat=${lat}&lon=${lon}`)
+	fetch(`http://localhost:8000/owm/day-weather-forecast?lat=${lat}&lon=${lon}`)
 		.then(res => res.json())
 		.then(data => {
 		  weatherCache[`${lat},${lon}`] = data.forecast_items;
@@ -422,7 +422,7 @@ function event_from_calendar(eventId) {
 
     console.log("Event ID:", eventId);
 
-    fetch(`http://192.168.1.16:8000/calendar/event?uuid=${eventId}`)
+    fetch(`http://localhost:8000/calendar/event?uuid=${eventId}`)
         .then(res => res.json())
         .then(data => {
             console.log("Event data:", data);
@@ -486,13 +486,13 @@ function initMap() {
     }).addTo(map);
 
     createBBoxButton(map, {
-		url: "http://192.168.1.16:8000/osm/peaks",
+		url: "http://localhost:8000/osm/peaks",
 		buttonText: "Mountain Peaks",
 		layerVarName: "peaksViewLayer"
 	});
 
 	createBBoxButton(map, {
-		url: "http://192.168.1.16:8000/osm/viewpoints",
+		url: "http://localhost:8000/osm/viewpoints",
 		buttonText: "Viewpoints",
 		layerVarName: "peaksViewLayer"
 	});

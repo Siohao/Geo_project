@@ -1,6 +1,6 @@
 FROM python:3.12-slim
 
-WORKDIR /main
+WORKDIR /geo_project/geo_project
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt

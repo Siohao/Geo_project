@@ -156,7 +156,7 @@ class WeatherMapClient:
 
 class OSMOverpass:
 
-    overpass_url = os.getenv("OVERPASS_URL", "http://overpass_sk/api/interpreter")
+    overpass_url = os.getenv("OVERPASS_URL", "http://sk_overpass/api/interpreter")
 
     def __init__(self):
         pass
