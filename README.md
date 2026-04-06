@@ -5,8 +5,9 @@
 </p>
 
 # 📍 Geo Project
-Aplikacja webowa do planowania wycieczek górskich w Korei Południowej z wykorzystaniem danych z OpenStreetMap.
+A web application for planning mountain trips in South Korea using OpenStreetMap data.
 
+## 📸 Screenshots
 <details>
 <summary>More photos</summary>
 <br>
@@ -16,49 +17,50 @@ Aplikacja webowa do planowania wycieczek górskich w Korei Południowej z wykorz
 </p>
 </details>
 
-# 💡 Rozwiązanie
-Aplikacja umożliwia:
-* przeglądanie mapy Korei Południowej
-* pobieranie punktów (szczyty, punkty widokowe) z OpenStreetMap
-* wyświetlanie szlaków w promieniu 2 km
-* oznaczanie trudności szlaków kolorami
-* sprawdzanie prognozy pogody na 5 dni
-* zapisywanie wydarzeń w Google Calendar (z linkiem do mapy)
+## 💡 Solutions
+The app allows you to:
+* browse the map of South Korea
+* fetch points (peaks, viewpoints) from OpenStreetMap
+* display trails within a 2 km radius
+* visualizing trail difficulty with color-coding
+* check the 5-day weather forecast
+* save events to Google Calendar (with a link to the map)
 
-# 🏗 Architektura
-Projekt oparty na architekturze wielowarstwowej:
+## 🏗 Architecture
+The project is based on a multi-tier architecture:
 ```
 Frontend (JavaScript)
     ↓
 Backend (FastAPI)
     ↓
-Services / Models / External APIs
+Backend (Services / Models)
     ↓
 Cache (Redis) → Database (PostgreSQL) → External APIs
 ```
 
-# Strategia pobierania danych:
+### Data retrieval strategy:
 1. Cache (Redis)
-2. Baza danych (PostgreSQL)
-3. Zewnętrzne API (OpenStreetMap/OpenWeatherMap)
+2. Database (PostgreSQL)
+3. External API (OpenStreetMap/OpenWeatherMap)
 
-# 🐳 Docker
-Cała aplikacja działa w kontenerach:
+## 🐳 Docker
+The entire application runs in containers:
 * frontend
 * backend
 * PostgreSQL
 * Redis (cache)
-* OpenStreetMap API (lokalnie)
+* OpenStreetMap API (local)
 
-# Funkcjonalności:
-* Markery szczytów i punktów widokowych (OpenStreetMap)
-* Szlaki górskie wokół wybranego punktu
-* Kolorowanie szlaków według trudności
-* Prognoza pogody (5 dni)
-* Wybór daty wycieczki
-* Integracja z Google Calendar (#geo + link do mapy)
+## Features:
+* Peak and viewpoint markers (OpenStreetMap)
+* Hiking trails around the selected point
+* Trail coloring by difficulty
+* 5-day weather forecast
+* Select trip date
+* Google Calendar integration (#geo + map link)
 
-# Technologie:
+## ⚙️ Backend Details
+### Technologies:
 * Python + FastAPI
 * PostgreSQL
 * Redis (cache)
@@ -68,68 +70,68 @@ Cała aplikacja działa w kontenerach:
 * OpenWeatherMap API
 * JavaScript (frontend)
 
-# Wzorce i dobre praktyki:
+### Patterns and best practices:
 * Dependency Injection
-* Retry & timeout dla API
-* Healthchecki usług
-* Dekoratory (np. do obsługi retry/logiki)
-* Podział na warstwy:
+* API Retry & Timeout
+* Service Health Checks
+* Decorators (e.g., for handling retry/logic)
+* Layering:
     * services
     * models
-    * integracje z API
+    * API integrations
 
-# Testy:
+### Tests:
 * pytest
 * coverage
 
-# Uruchomienie testów:
+### Running tests:
 
 ```bash
 pytest
 ```
 
-# Baza danych:
+### Database:
 * PostgreSQL
 * Alembic
-* dump struktury danych (bez danych) w repo
-* cron do usuwania starych/nieaktualnych danych
-* dane o:
-    * trasach
-    * punktach
-    * pogodzie
-    * wydarzeniach
+* dump data structure (without data) in repo
+* cron job to delete old/obsolete data
+* data about:
+    * routes
+    * waypoints
+    * weather
+    * events
 
-# Decyzje projektowe:
-* Wykorzystanie lokalnych map pozwala na obejście limitów narzuconych przez zewnętrzne API
-* OpenWeatherMap zamiast Google Weather API - brak większych ograniczeń API
-* Baza danych (PostgreSQL) - zmniejszenie zapytań do API
-* Cache (Redis) - trzymanie lokalnej kopii wcelu przyspieszenia odpowiedzi i zmniejszenie liczby zapytań do API
-* Docker - łatwe uruchomienie całego środowiska
-* Warstwowa architektura - czytelność i skalowalność
-* Alembic - kontrola architektury bazy danych między developerami i łatwość testowania zmian
+## Design Decisions:
+* Using local maps allows us to bypass the limits imposed by external APIs
+* OpenWeatherMap instead of Google Weather API - no major API limitations
+* Database (PostgreSQL) - reduced API queries
+* Cache (Redis) - keeping a local copy to speed up responses and reduce the number of API queries
+* Docker - easy to run the entire environment
+* Layered architecture - readability and scalability
+* Alembic - control of the database architecture between developers and easy testing of changes
 
-# Google Calendar
-Link w wydarzeniu Google Calendar przenosi użytkownika do widoku read-only, który pokazuje szczegóły zaplanowanej wycieczki:
+## Google Calendar
+The link in the Google Calendar event takes the user to a read-only view that shows the details of the planned trip:
 
-* wybrane szlaki i punkt
-* prognozę pogody na dzień wydarzenia
-* bez możliwości zmiany daty czy dodawania nowych punktów, aby zachować spójność zaplanowanego terminu i trasy
+* selected trails and waypoint
+* weather forecast for the day of the event
+* no option to change the date or add new waypoints to maintain consistency between the planned date and route
 
-# Możliwe ulepszenia:
-* autoryzacja użytkowników
+## Possible improvements:
+* User authorization
 * CI/CD (deploy)
-* lepsze filtrowanie tras
+* Better route filtering
 
-# Uruchomienie:
-Ściągnąć mapę korei z: `http://download.geofabrik.de/asia/south-korea.html`.<br>
-Przekonwertować mapę z typu `.osm.pbf` na `.osm.bz2` przy użyciu `Osmium`. Przekonwertowaną mapę wrzucić do folderu `docker_db_frontend/overpass_db/`.<br>
-Do folderu `geo_project/geo_project/tokens/` wrzucić plik `credentials.json`, który robimy na stronie `https://console.cloud.google.com/`.<br>
-W folderze docker_db_frontend:
+## Getting started (Installation):
+1. Download the map of South Korea from: `http://download.geofabrik.de/asia/south-korea.html`.<br>
+2. Convert the map from `.osm.pbf` to `.osm.bz2` format using `Osmium`. Put the converted map into the `docker_db_frontend/overpass_db/`.<br>
+3. Into the folder `geo_project/geo_project/tokens/` insert file `credentials.json`, which we get from website: `https://console.cloud.google.com/`.<br>
+4. In the `docker_db_frontend` folder:
 
 ```bash
 docker compose up
 ```
+Note: The map container may take about 20 minutes to start during first run.<br>
 
-Kontener z mapą może być uruchamiany pierwszy raz około 20 minut.<br>
-Uruchamiamy plik `docker_db_frontend/DB/init/init.sh`.<br>
-Przy pierwszej próbie zapisu wydarzenia do kalendarza będzie trzeba się zalogować w przeglądarce do swojego konta google, by dostać plik `token.json`.
+5. Run the `docker_db_frontend/DB/init/init_db.sh` file by using `bash init_db.sh`.<br>
+6. The first time you try to save an event to the calendar, you will need to log in to your Google account in a browser to get a `token.json` file.

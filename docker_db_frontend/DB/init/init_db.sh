@@ -1,1 +1,3 @@
+#!/bin/bash
+
 docker exec -i postgres-db psql -U admin -d geo_project_db < schema.sql
